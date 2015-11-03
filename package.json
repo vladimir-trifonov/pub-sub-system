@@ -1,0 +1,29 @@
+{
+  "name": "ps-system",
+  "version": "1.0.0",
+  "description": "Publish-subscribe system",
+  "main": "ps-broker.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vladimir-trifonov/pub-sub-system.git"
+  },
+  "keywords": [
+    "pub",
+    "sub"
+  ],
+  "author": "Vladimir Trifonov",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vladimir-trifonov/pub-sub-system/issues"
+  },
+  "homepage": "https://github.com/vladimir-trifonov/pub-sub-system#readme",
+  "dependencies": {
+    "debug": "2.2.0",
+    "lodash": "3.10.1",
+    "node-uuid": "1.4.3",
+    "ws": "0.8.0"
+  }
+}
