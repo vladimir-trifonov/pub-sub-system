@@ -1,25 +1,41 @@
 'use strict';
 
+var util = require('util'),
+	EventEmitter = require('events').EventEmitter;
+
 /*
- * Ps submodule whick uses websockets layer for communication.
+ * Ps-ws is ps submodule which uses websockets layer for communication.
  */
 function PsWs(socket) {
 	this.socket = socket;
+
+	EventEmitter.call(this);
+	return this;
+}
+
+util.inherits(PsWs, EventEmitter);
+
+var onconnection = function(ws) {
+	ws.on('message', onmessage.bind(this));
+}
+
+var onmessage = function(message) {
+	try {
+		var data = JSON.parse(message);
+		this.emit('data', data);
+	} catch (e) {
+		this.emit('err', 'Message parsing error');
+	}
 }
 
 PsWs.prototype.listen = function() {
-	this.socket.on('connection', function(ws) {
-		ws.on('message', function(message) {
-			console.log(message);
-		});
-	});
+	this.socket.on('connection', onconnection.bind(this));
 }
 
 PsWs.prototype.open = function() {
-	var that = this;
 	this.socket.on('open', function() {
-		that.connection = that.socket;
-	});
+		this.connection = this.socket;
+	}.bind(this));
 }
 
 PsWs.prototype.destroy = function() {
@@ -33,8 +49,14 @@ PsWs.prototype.destroy = function() {
 }
 
 PsWs.prototype.send = function(msg) {
-	if (this.connection) {
-		this.connection.send(msg);
+	try {
+		if (this.connection) {
+			this.connection.send(msg);
+		} else {
+			throw new Error('No connection established')
+		}
+	} catch (e) {
+		throw e;
 	}
 }
 

@@ -14,7 +14,7 @@ var parse = function(chunk) {
 	if (typeof chunk === 'string' && _.isArray(data = chunk.split(' '))) {
 		return {
 			channel: data[0].trim(),
-			msg: ((data.slice(1, data.length)).join(' ')).trim()
+			msg: ((data.slice(1, data.length)).join(' ')).replace(/(\n|\r)+$/, '')
 		}
 	}
 

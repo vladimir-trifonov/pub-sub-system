@@ -1,5 +1,8 @@
 'use strict';
 
+var util = require('util'),
+	EventEmitter = require('events').EventEmitter;
+
 /*
  * Ps is library implementing Publish-Subscribe pattern. The system
  * involves three major sub structures: broker, publisher and client.
@@ -8,22 +11,47 @@ function Ps(options) {
 	this.options = options;
 
 	if (!options.socket) {
-		throw new Error('No connection!');
+		throw new Error('No socket connection');
 	}
 
 	this.connection = require('./ps-ws').connect(options.socket);
+
+	if (options.redis) {
+		this.db = require('./ps-redis').client(options.redis);
+	}
 }
 
 /*
  * Broker implementation.
  */
+var newData = function(data) {
+	this.emit('data', data);
+}
+var ondata = function(data) {
+	dbStore.call(this, data)
+		.then(function(){
+			newData.call(this, data);
+		}.bind(this));
+}
+
+var dbStore = function(data) {
+	return this.db.store(data.channel, data.msg);
+}
+
 function Broker(options) {
 	Ps.call(this, options);
+
 	this.connection.listen();
+	this.connection.on('data', ondata.bind(this));
+
+	EventEmitter.call(this);
+	return this;
 }
 
 Broker.prototype = Ps;
 Broker.prototype.constructor = Broker;
+
+util.inherits(Broker, EventEmitter);
 
 /*
  * Publisher implementation.
@@ -67,7 +95,7 @@ Client.prototype = Ps;
 Client.prototype.constructor = Client;
 
 /*
- * Broker dependency injection and export
+ * Broker dependency injection
  */
 function broker(options) {
 	return new Broker(options);
@@ -76,7 +104,7 @@ function broker(options) {
 module.exports.broker = broker;
 
 /*
- * Publisher dependency injection and export
+ * Publisher dependency injection
  */
 function publisher(options) {
 	return new Publisher(options);
@@ -85,7 +113,7 @@ function publisher(options) {
 module.exports.publisher = publisher;
 
 /*
- * Client dependency injection and export
+ * Client dependency injection
  */
 function client(options) {
 	return new Client(options);
