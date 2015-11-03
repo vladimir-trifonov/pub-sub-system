@@ -1,10 +1,10 @@
 'use strict';
+
 /*
- *
- *
+ * Ps submodule whick uses websockets layer for communication.
  */
 function PsWs(socket) {
-  this.socket = socket;
+	this.socket = socket;
 }
 
 PsWs.prototype.listen = function() {
@@ -17,17 +17,29 @@ PsWs.prototype.listen = function() {
 
 PsWs.prototype.open = function() {
 	var that = this;
-	this.socket.on('open', function(ws) {
+	this.socket.on('open', function() {
 		that.connection = that.socket;
 	});
 }
 
+PsWs.prototype.destroy = function() {
+	if (this.connection) {
+		this.connection = null;
+	}
+
+	if (this.socket) {
+		this.socket = null;
+	}
+}
+
 PsWs.prototype.send = function(msg) {
-	this.connection.send(msg);
+	if (this.connection) {
+		this.connection.send(msg);
+	}
 }
 
 function connect(socket) {
-  return new PsWs(socket);
+	return new PsWs(socket);
 }
 
 module.exports.connect = connect;

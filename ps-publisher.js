@@ -10,13 +10,11 @@ var port = process.argv[2] || 3001,
 	});
 
 var parse = function(chunk) {
-	if (typeof chunk === 'string') {
-		var data = chunk.split(' ');
-		if (_.isArray(data)) {
-			return {
-				channel: data[0].trim(),
-				msg: ((data.slice(1, data.length)).join(' ')).trim()
-			}
+	var data;
+	if (typeof chunk === 'string' && _.isArray(data = chunk.split(' '))) {
+		return {
+			channel: data[0].trim(),
+			msg: ((data.slice(1, data.length)).join(' ')).trim()
 		}
 	}
 
@@ -25,12 +23,15 @@ var parse = function(chunk) {
 
 var send = _.curry(function(to, data) {
 	if (data !== null) {
-		to.send(JSON.stringify(data));
+		try {
+			to.send(JSON.stringify(data));
+		} catch (e) {
+			console.log(e);
+		}
 	}
 });
 
 var proceed = _.flowRight(send(publisher), parse);
-
 var onRead = function() {
 	var chunk = process.stdin.read();
 	if (chunk !== null) {
