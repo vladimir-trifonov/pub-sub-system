@@ -1,3 +1,10 @@
+/***																											*
+ *** Publish-Subscribe based Publisher - using Ps library	*
+ *** ---------------------------------------------------- *
+ *** This module listens for console input and sends it		*
+ *** through webscoket connection	to central server				*
+ *** Usage: > node ps-publisher <port>										*
+ ***																											*/
 'use strict';
 
 var port = process.argv[2],
@@ -9,6 +16,9 @@ var port = process.argv[2],
 		socket: ws
 	});
 
+// Parse the console input to following format:
+// -> Input -> test hello!
+// -> Parsed: { channel: test, msg: 'hello!' }
 var parse = function(chunk) {
 	var data;
 	if (typeof chunk === 'string' && _.isArray(data = chunk.split(' '))) {
@@ -21,6 +31,7 @@ var parse = function(chunk) {
 	return null;
 }
 
+// Sends the new messages to Ps(Pub-sub) module
 var send = _.curry(function(to, data) {
 	if (data !== null) {
 		try {
@@ -31,6 +42,7 @@ var send = _.curry(function(to, data) {
 	}
 });
 
+// Listen for input from console, parse it and sends it to Ps(Pub-sub) module
 var initPublisher = function() {
 	var proceed = _.flowRight(send(publisher), parse);
 	var onRead = function() {
@@ -45,4 +57,9 @@ var initPublisher = function() {
 	process.stdin.on('end', publisher.destroy);
 }
 
+/**
+ ** Start Publisher
+ ** This function listen on console for input and started web socket connection ready to publish
+ ** the input from the console.
+ **/
 initPublisher();

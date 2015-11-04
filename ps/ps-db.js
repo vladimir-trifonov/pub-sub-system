@@ -1,14 +1,22 @@
+/***																											*
+ *** Ps library module - Uses databases    								*
+ *** for storing pub-sub modules related data							*
+ ***																											*/
 'use strict';
 
 var Q = require('q'),
 	moment = require('moment'),
 	_ = require('lodash');
 
+/*
+ * Ps-db base class
+ */
 function PsDb(kvDb, nosqlDb) {
 	this.kvDb = kvDb;
 	this.nosqlDb = nosqlDb;
 }
 
+// Save new messages
 PsDb.prototype.saveMsg = function(channel, msg) {
 	return insertDoc.call(this, {
 		channel: channel,
@@ -17,11 +25,13 @@ PsDb.prototype.saveMsg = function(channel, msg) {
 	});
 }
 
+// Subscribe client for channels' updates
 PsDb.prototype.chsSub = function(id, channels) {
 	_.each(channels, chSub(id).bind(this));
 	this.kvDb.rpush([id + '-usr'].concat(channels));
 }
 
+// Unubscribe client for channels' updates
 PsDb.prototype.chsUnsub = function(id) {
 	this.kvDb.lrange(id + '-usr', 0, -1, function(err, channels) {
 		_.each(channels, chUnsub(id).bind(this));
@@ -37,6 +47,7 @@ var chUnsub = _.curry(function(v, k) {
 	this.kvDb.lrem(k + '-ch', 0, v);
 });
 
+// Get clients subscribed for specific channel updates
 PsDb.prototype.getChSubs = function(channel) {
 	return Q.Promise(function(resolve, reject) {
 		this.kvDb.lrange(channel + '-ch', 0, -1, function(err, reply) {
@@ -46,6 +57,7 @@ PsDb.prototype.getChSubs = function(channel) {
 	}.bind(this));
 }
 
+// Get last messages stored for specific channel
 PsDb.prototype.getLastMsgs = function(channels) {
 	return Q.Promise(function(resolve, reject) {
 		var filterDate = moment().subtract(30, 'minutes').toDate();
@@ -70,6 +82,12 @@ PsDb.prototype.getLastMsgs = function(channels) {
 	}.bind(this));
 }
 
+/**
+ ** Ps-ws used methods
+ **/
+
+// Transfor mongoDb data to the following format:
+// {<channel_name>: [messages], <channel_name>: [messages], ...}
 var groupAndConcatMsgsByChs = function(data) {
 	return _.chain(data)
 		.groupBy('channel')
@@ -88,6 +106,7 @@ var groupAndConcatMsgsByChs = function(data) {
 		.value()
 }
 
+// Save new doc to mongoDb
 var insertDoc = function(doc) {
 	return Q.Promise(function(resolve, reject) {
 		this.nosqlDb.insert(doc, function(err) {
@@ -97,6 +116,9 @@ var insertDoc = function(doc) {
 	}.bind(this));
 }
 
+/*
+ * Dependency injection and classes exports
+ */
 function client(kvDb, nosqlDb) {
 	return new PsDb(kvDb, nosqlDb);
 }

@@ -1,3 +1,10 @@
+/***																											*
+ *** Publish-Subscribe based Broker - using Ps library		*
+ *** ---------------------------------------------------- *
+ *** This module is the central server which accepts			*
+ *** connections from clients and publishers							*
+ *** Usage: > node ps-broker <port>												*
+ ***																											*/
 'use strict';
 
 var port = process.argv[2],
@@ -14,6 +21,7 @@ var WebSocketServer = require('ws').Server,
 		port: port
 	});
 
+// Starts the broker
 var initPubSub = function(mongo) {
 	var ps = require('./ps/ps'),
 		broker = ps.broker({
@@ -30,6 +38,7 @@ var initPubSub = function(mongo) {
 	broker.on('error', onerror);
 }
 
+// Connect mongoDb client
 var initMongo = function() {
 	return Q.Promise(function(resolve, reject) {
 		MongoClient.connect(url, function(err, db) {
@@ -41,6 +50,10 @@ var initMongo = function() {
 	});
 }
 
+/**
+ ** Start Broker
+ ** Init mongoDb connection and starts the central websocket server
+ **/
 var initBroker = function() {
 	initMongo()
 		.then(initPubSub);
