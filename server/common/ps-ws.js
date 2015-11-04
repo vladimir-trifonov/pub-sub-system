@@ -42,6 +42,7 @@ var onclose = function(id) {
 	return function() {
 		if (id !== null) {
 			this.clients[id] = null;
+			this.emit('close', id);
 		}
 	}
 }

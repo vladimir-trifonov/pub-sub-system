@@ -21,7 +21,6 @@
   },
   "homepage": "https://github.com/vladimir-trifonov/pub-sub-system#readme",
   "dependencies": {
-    "async": "1.5.0",
     "debug": "2.2.0",
     "lodash": "3.10.1",
     "moment": "2.10.6",

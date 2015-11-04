@@ -1,7 +1,6 @@
 'use strict';
 
 var Q = require('q'),
-	async = require('async'),
 	moment = require('moment'),
 	_ = require('lodash');
 
@@ -19,17 +18,28 @@ PsDb.prototype.saveMsg = function(channel, msg) {
 }
 
 PsDb.prototype.chsSub = function(id, channels) {
-	return Q.Promise(function(resolve, reject) {
-		async.each(channels, pushValueByKey(id).bind(this), function(err) {
-			err && reject(err);
-			err || resolve();
-		});
+	_.map(channels, chSub(id).bind(this));
+	this.kvDb.rpush([id + '-usr'].concat(channels));
+}
+
+PsDb.prototype.chsUnsub = function(id) {
+	this.kvDb.lrange(id + '-usr', 0, -1, function(err, channels) {
+		_.map(channels, chUnsub(id).bind(this));
+		this.kvDb.del(id + '-usr');
 	}.bind(this));
 }
 
+var chSub = _.curry(function(v, k) {
+	this.kvDb.rpush([k + '-ch', v]);
+});
+
+var chUnsub = _.curry(function(v, k) {
+	this.kvDb.lrem(k + '-ch', 0, v);
+});
+
 PsDb.prototype.getChSubs = function(channel) {
 	return Q.Promise(function(resolve, reject) {
-		this.kvDb.lrange(channel, 0, -1, function(err, reply) {
+		this.kvDb.lrange(channel + '-ch', 0, -1, function(err, reply) {
 			err && reject(err);
 			err || resolve(reply);
 		});
@@ -86,15 +96,6 @@ var insertDoc = function(doc) {
 		});
 	}.bind(this));
 }
-
-var pushValueByKey = _.curry(function(v, k) {
-	return Q.Promise(function(resolve, reject) {
-		this.kvDb.rpush([k, v], function(err) {
-			err && reject(err);
-			err || resolve();
-		});
-	}.bind(this));
-});
 
 function client(kvDb, nosqlDb) {
 	return new PsDb(kvDb, nosqlDb);

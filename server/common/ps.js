@@ -36,6 +36,7 @@ function Broker(options) {
 
 	this.connection.listen(true);
 	this.connection.on('data', ondata.bind(this));
+	this.connection.on('close', onclose.bind(this));
 
 	EventEmitter.call(this);
 	return this;
@@ -73,6 +74,10 @@ function ondata(data) {
 	}
 }
 
+function onclose(id) {
+	this.db.chsUnsub(id);
+}
+
 // OnPublish
 function sendLast(subscr, channels) {
 	this.db.getLastMsgs(channels)
@@ -101,7 +106,6 @@ var emitData = _.curry(function(channel, msg) {
 function saveMsg(channel, msg) {
 	return this.db.saveMsg(channel, msg);
 }
-
 
 // OnSubscribe
 function notifyChannel(channel, msg) {
