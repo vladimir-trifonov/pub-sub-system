@@ -169,7 +169,7 @@ function onNewNotifications(data) {
 
 // Emit received data from client
 var emitData = _.curry(function(channel, msg) {
-	this.emit('data', '[ ' + channel + ' ] ' + msg);
+	this.emit('data', ' [ ' + channel + ' ] ' + msg);
 });
 
 // Send to client the last messages when subscribe to channel's update

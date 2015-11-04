@@ -11,7 +11,7 @@ After new client's connection the broker sends all messages from the last 30 min
 
 ### Client
 
-	Listens for messages from subscribed topics. Prints all messages to console.
+Listens for messages from subscribed topics. Prints all messages to console.
 
 ### Publisher
 
