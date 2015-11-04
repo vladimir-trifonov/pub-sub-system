@@ -1,6 +1,9 @@
 'use strict';
 
-var util = require('util'),
+var Q = require('q'),
+	util = require('util'),
+	_ = require('lodash'),
+	uuid = require('node-uuid'),
 	EventEmitter = require('events').EventEmitter;
 
 /*
@@ -8,6 +11,7 @@ var util = require('util'),
  */
 function PsWs(socket) {
 	this.socket = socket;
+	this.clients = {};
 
 	EventEmitter.call(this);
 	return this;
@@ -15,26 +19,52 @@ function PsWs(socket) {
 
 util.inherits(PsWs, EventEmitter);
 
-var onconnection = function(ws) {
-	ws.on('message', onmessage.bind(this));
-}
-
-var onmessage = function(message) {
+var onmessage = _.curry(function(id, message) {
 	try {
 		var data = JSON.parse(message);
-		this.emit('data', data);
 	} catch (e) {
-		this.emit('err', 'Message parsing error');
+		this.emit('error', 'Message parsing error');
+	}
+
+	if (data) {
+		if (id !== null) {
+			data = util._extend({
+				id: id
+			}, data);
+		}
+
+		this.emit('data', data);
+	}
+});
+
+var onclose = function(id) {
+	return function() {
+		if (id !== null) {
+			this.clients[id] = null;
+		}
 	}
 }
 
-PsWs.prototype.listen = function() {
-	this.socket.on('connection', onconnection.bind(this));
+var onconnection = _.curry(function(save, ws) {
+	var id = (save ? uuid() : null);
+	if (save) {
+		this.clients[id] = ws;
+	}
+
+	ws.on('message', onmessage(id).bind(this));
+	ws.on('close', onclose(id).bind(this));
+});
+
+PsWs.prototype.listen = function(save) {
+	this.socket.on('connection', onconnection(save).bind(this));
 }
 
 PsWs.prototype.open = function() {
-	this.socket.on('open', function() {
-		this.connection = this.socket;
+	return Q.Promise(function(resolve) {
+		this.socket.on('open', function() {
+			this.connection = this.socket;
+			resolve();
+		}.bind(this));
 	}.bind(this));
 }
 
@@ -48,10 +78,12 @@ PsWs.prototype.destroy = function() {
 	}
 }
 
-PsWs.prototype.send = function(msg) {
+PsWs.prototype.send = function(type, msg) {
 	try {
 		if (this.connection) {
-			this.connection.send(msg);
+			this.connection.send(JSON.stringify(util._extend({
+				type: type
+			}, msg)));
 		} else {
 			throw new Error('No connection established')
 		}

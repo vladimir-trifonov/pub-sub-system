@@ -24,7 +24,7 @@ var parse = function(chunk) {
 var send = _.curry(function(to, data) {
 	if (data !== null) {
 		try {
-			to.send(JSON.stringify(data));
+			to.send(data);
 		} catch (e) {
 			console.log(e);
 		}

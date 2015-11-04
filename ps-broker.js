@@ -1,8 +1,9 @@
 'use strict';
 
-var port = process.argv[2] || 3001;
-var redis = require('redis');
-var client = redis.createClient();
+var port = process.argv[2] || 3001,
+	redis = require('redis'),
+	debug = require('debug')('ps-broker'),
+	client = redis.createClient();
 
 var WebSocketServer = require('ws').Server,
 	wss = new WebSocketServer({
@@ -16,8 +17,8 @@ var ps = require('./server/common/ps'),
 	});
 
 var onerror = function(err) {
-	console.log('Error: ', err);
+	debug('Error: ', err);
 }
 
-broker.on('data', console.log);
-broker.on('err', onerror);
+broker.on('data', debug);
+broker.on('error', onerror);

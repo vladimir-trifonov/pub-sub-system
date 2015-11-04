@@ -1,6 +1,7 @@
 'use strict';
 
-var util = require('util'),
+var Q = require('q'),
+	util = require('util'),
 	EventEmitter = require('events').EventEmitter;
 
 /*
@@ -15,33 +16,76 @@ function Ps(options) {
 	}
 
 	this.connection = require('./ps-ws').connect(options.socket);
-
-	if (options.redis) {
-		this.db = require('./ps-redis').client(options.redis);
-	}
 }
 
 /*
  * Broker implementation.
  */
-var newData = function(data) {
-	this.emit('data', data);
-}
-var ondata = function(data) {
-	dbStore.call(this, data)
-		.then(function(){
-			newData.call(this, data);
-		}.bind(this));
+var notifyChannel = function() {
+
 }
 
-var dbStore = function(data) {
-	return this.db.store(data.channel, data.msg);
+var initSubscriber = function() {
+
+}
+
+var newData = function(channel, msg) {
+	this.emit('data', {
+		channel: channel,
+		msg: msg
+	});
+	notifyChannel(channel, msg);
+}
+
+var newSubscr = function(id, channels) {
+	this.emit('data', {
+		id: id,
+		channels: channels
+	});
+	initSubscriber(id, channels);
+}
+
+var saveMsg = function(channel, msg) {
+	if (!this.db) {
+		return Q.reject('No db');
+	}
+
+	return this.db.saveMsg(channel, msg);
+}
+
+var subscrChannels = function(data) {
+	if (!this.db) {
+		return Q.reject('No db');
+	}
+
+	return this.db.subscrChannels(data);
+}
+
+var ondata = function(data) {
+	switch (data.type) {
+		case 'publish':
+			saveMsg(data.channel, data.msg);
+			newData(data.channel, data.msg);
+			break;
+		case 'subscribe':
+			subscrChannels(data.id, data.channels);
+			newSubscr(data.id, data.channels);
+			break;
+	}
 }
 
 function Broker(options) {
-	Ps.call(this, options);
+	Ps.call(this, {
+		socket: options.socket
+	});
 
-	this.connection.listen();
+	if (!options.redis) {
+		throw new Error('No db');
+	}
+
+	this.db = require('./ps-redis').client(options.redis);
+
+	this.connection.listen(true);
 	this.connection.on('data', ondata.bind(this));
 
 	EventEmitter.call(this);
@@ -57,7 +101,10 @@ util.inherits(Broker, EventEmitter);
  * Publisher implementation.
  */
 function Publisher(options) {
-	Ps.call(this, options);
+	Ps.call(this, {
+		socket: options.socket
+	});
+
 	this.connection.open();
 }
 
@@ -70,7 +117,7 @@ Publisher.prototype.send = function(msg) {
 	}
 
 	try {
-		this.connection.send(msg);
+		this.connection.send('publish', msg);
 	} catch (e) {
 		throw e;
 	}
@@ -87,12 +134,35 @@ Publisher.prototype.destroy = function() {
 /*
  * Client implementation.
  */
+var subscribe = function(channels) {
+	return function() {
+		try {
+			this.connection.send('subscribe', {channels: channels});
+		} catch (e) {
+			throw e;
+		}
+	}
+};
+
 function Client(options) {
-	Ps.call(this, options);
+	Ps.call(this, {
+		socket: options.socket
+	});
+
+	this.channels = options.channels;
+
+	this.connection.listen();
+	this.connection.open()
+		.then(subscribe(this.channels).bind(this));
+
+	EventEmitter.call(this);
+	return this;
 }
 
 Client.prototype = Ps;
 Client.prototype.constructor = Client;
+
+util.inherits(Client, EventEmitter);
 
 /*
  * Broker dependency injection
