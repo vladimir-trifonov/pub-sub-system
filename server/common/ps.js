@@ -20,10 +20,6 @@ function Ps(options) {
 
 
 
-
-
-
-
 /*
  * Broker implementation
  *
@@ -54,7 +50,7 @@ util.inherits(Broker, EventEmitter);
 
 // Broker Functions
 
-function ondata (data) {
+function ondata(data) {
 	switch (data.type) {
 		case 'publish':
 			saveMsg.call(this, data.channel, data.msg);
@@ -65,23 +61,28 @@ function ondata (data) {
 			onNewSubscr.call(this, data.id, data.channels);
 			break;
 		case 'notify':
-			console.log(data);
+			onNewNotification.call(this, data.channel, data.msgs);
 			break;
 	}
 }
 
 // OnPublish
-function initSubscriber() {
+function notifySubscriber() {
 
+}
+
+function onNewNotification(channel, msgs) {
+	_.map(msgs, emitData(channel).bind(this));
 }
 
 function onNewData(channel, msg) {
-	this.emit('data', {
-		channel: channel,
-		msg: msg
-	});
+	emitData.call(this, channel, msg);
 	notifyChannel.call(this, channel, msg);
 }
+
+var emitData = _.curry(function(channel, msg) {
+	this.emit('data', '[ ' + channel + ' ] ' + msg);
+});
 
 function saveMsg(channel, msg) {
 	return this.db.saveMsg(channel, msg);
@@ -91,12 +92,15 @@ function saveMsg(channel, msg) {
 // OnSubscribe
 function notifyChannel(channel, msg) {
 	getChSubs.call(this, channel)
-		.then(notifySubs(channel, msg).bind(this));
+		.then(notifySubs(channel, [msg]).bind(this));
 }
 
-var notifySubs = _.curry(function (channel, msg, subscrs) {
+var notifySubs = _.curry(function(channel, msgs, subscrs) {
 	_.map(subscrs, function(subscr) {
-		this.connection.notify(channel, msg, subscr)
+		this.connection.notify({
+			channel: channel,
+			msgs: msgs
+		}, subscr);
 	}.bind(this));
 });
 
@@ -109,17 +113,12 @@ function onNewSubscr(id, channels) {
 		id: id,
 		channels: channels
 	});
-	initSubscriber.call(this, id, channels);
+	notifySubscriber.call(this, id, channels);
 }
 
 function chsSub(id, channels) {
 	return this.db.chsSub(id, channels);
 }
-
-
-
-
-
 
 
 
@@ -161,10 +160,6 @@ Publisher.prototype.destroy = function() {
 
 
 
-
-
-
-
 /*
  * Client implementation
  *
@@ -177,7 +172,7 @@ function Client(options) {
 
 	this.channels = options.channels;
 
-	this.connection.open()
+	this.connection.open(true)
 		.then(subscribe(this.channels).bind(this));
 	this.connection.on('data', ondata.bind(this));
 
@@ -193,16 +188,14 @@ util.inherits(Client, EventEmitter);
 function subscribe(channels) {
 	return function() {
 		try {
-			this.connection.send('subscribe', {channels: channels});
+			this.connection.send('subscribe', {
+				channels: channels
+			});
 		} catch (e) {
 			throw e;
 		}
 	}
 }
-
-
-
-
 
 
 

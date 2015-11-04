@@ -21,10 +21,12 @@ var getChannels = function() {
 }
 
 var subscribe = function(channels) {
-	return ps.client({
+	var client = ps.client({
 		socket: ws,
 		channels: channels
 	});
+
+	client.on('data', console.log);
 }
 
 var initClient =_.flowRight(subscribe, getChannels);

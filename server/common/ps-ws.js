@@ -46,9 +46,9 @@ var onclose = function(id) {
 	}
 }
 
-var onconnection = _.curry(function(save, ws) {
-	var id = (save ? uuid() : null);
-	if (save) {
+var onconnection = _.curry(function(canSave, ws) {
+	var id = (canSave ? uuid() : null);
+	if (canSave) {
 		this.clients[id] = ws;
 	}
 
@@ -56,16 +56,20 @@ var onconnection = _.curry(function(save, ws) {
 	ws.on('close', onclose(id).bind(this));
 });
 
-PsWs.prototype.listen = function(save) {
-	this.socket.on('connection', onconnection(save).bind(this));
+PsWs.prototype.listen = function(canSave) {
+	this.socket.on('connection', onconnection(canSave).bind(this));
 }
 
-PsWs.prototype.open = function() {
+PsWs.prototype.open = function(canSub) {
 	return Q.Promise(function(resolve) {
 		this.socket.on('open', function() {
 
+			// Init Client or Publisher connections
 			this.connection = this.socket;
-			this.connection.on('message', onmessage(null).bind(this));
+
+			if (canSub) {
+				this.connection.on('message', onmessage(null).bind(this));
+			}
 
 			resolve();
 		}.bind(this));
@@ -96,14 +100,12 @@ PsWs.prototype.send = function(type, msg) {
 	}
 }
 
-PsWs.prototype.notify = function(channel, msg, clientId) {
+PsWs.prototype.notify = function(msg, clientId) {
 	var clientSocket = this.clients[clientId];
 	if (clientSocket && clientSocket.readyState === WebSocket.OPEN) {
-		clientSocket.send(JSON.stringify({
-			type: 'notify',
-			channel: channel,
-			msg: msg
-		}));
+		clientSocket.send(JSON.stringify(util._extend({
+			type: 'notify'
+		}, msg)));
 	}
 };
 
