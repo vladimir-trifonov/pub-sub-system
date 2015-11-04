@@ -4,11 +4,10 @@ var port = process.argv[2] || 3001,
 	redis = require('redis'),
 	debug = require('debug')('ps-broker'),
 	client = redis.createClient(),
-	_ = require('lodash'),
 	Q = require('q'),
 	MongoClient = require('mongodb').MongoClient,
 	// Connection URL
-	url = 'mongodb://localhost:27017/ps-broker';
+	url = 'mongodb://localhost:27017/ps';
 
 var WebSocketServer = require('ws').Server,
 	wss = new WebSocketServer({
@@ -34,11 +33,16 @@ var initPubSub = function(mongo) {
 var initMongo = function() {
 	return Q.Promise(function(resolve, reject) {
 		MongoClient.connect(url, function(err, db) {
+			var collection = db.collection('broker');
+
 			err && reject(err);
-			err || resolve(db);
+			err || resolve(collection);
 		});
 	});
 }
 
-var initBroker = _.flowRight(initPubSub, initMongo);
+var initBroker = function() {
+	initMongo()
+		.then(initPubSub);
+}
 initBroker();

@@ -58,37 +58,26 @@ function ondata (data) {
 	switch (data.type) {
 		case 'publish':
 			saveMsg.call(this, data.channel, data.msg);
-			newData.call(this, data.channel, data.msg);
+			onNewData.call(this, data.channel, data.msg);
 			break;
 		case 'subscribe':
-			subscrChannels.call(this, data.id, data.channels);
-			newSubscr.call(this, data.id, data.channels);
+			chsSub.call(this, data.id, data.channels);
+			onNewSubscr.call(this, data.id, data.channels);
 			break;
 	}
 }
 
-function notifyChannel() {
-
-}
-
+// OnPublish
 function initSubscriber() {
 
 }
 
-function newData(channel, msg) {
+function onNewData(channel, msg) {
 	this.emit('data', {
 		channel: channel,
 		msg: msg
 	});
 	notifyChannel(channel, msg);
-}
-
-function newSubscr(id, channels) {
-	this.emit('data', {
-		id: id,
-		channels: channels
-	});
-	initSubscriber(id, channels);
 }
 
 function saveMsg(channel, msg) {
@@ -99,12 +88,26 @@ function saveMsg(channel, msg) {
 	return this.db.saveMsg(channel, msg);
 }
 
-function subscrChannels(data) {
+
+// OnSubscribe
+function notifyChannel() {
+
+}
+
+function onNewSubscr(id, channels) {
+	this.emit('data', {
+		id: id,
+		channels: channels
+	});
+	initSubscriber(id, channels);
+}
+
+function chsSub(id, channels) {
 	if (!this.db) {
 		return Q.reject('No db');
 	}
 
-	return this.db.subscrChannels(data);
+	return this.db.chsSub(id, channels);
 }
 
 

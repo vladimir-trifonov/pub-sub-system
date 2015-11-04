@@ -1,30 +1,48 @@
 'use strict';
 
-var Q = require('q');
+var Q = require('q'),
+	async = require('async'),
+	_ = require('lodash');
 
 function PsDb(kvDb, nosqlDb) {
 	this.kvDb = kvDb;
 	this.nosqlDb = nosqlDb;
 }
 
-PsDb.prototype.saveMsg = function(k, v) {
+PsDb.prototype.saveMsg = function(channel, msg) {
+	return saveDoc.call(this, {
+			channel: channel,
+			msg: msg,
+			updated: new Date()
+		});
+}
+
+PsDb.prototype.chsSub = function(id, channels) {
 	return Q.Promise(function(resolve, reject) {
-		// this.kvDb.rpush([k + '-messages', v], function(err) {
-		// 	err && reject(err);
-		// 	err || resolve({
-		// 		channel: k,
-		// 		msg: v
-		// 	});
-		// });
-		resolve();
+		async.each(channels, pushValueByKey(id).bind(this), function(err) {
+			err && reject(err);
+			err || resolve();
+		});
 	}.bind(this));
 }
 
-PsDb.prototype.subscrChannels = function(data) {
+var saveDoc = function(doc) {
 	return Q.Promise(function(resolve, reject) {
-		resolve(data);
+		this.nosqlDb.insert(doc, function(err) {
+			err && reject(err);
+			err || resolve();
+		});
 	}.bind(this));
 }
+
+var pushValueByKey = _.curry(function(v, k) {
+	return Q.Promise(function(resolve, reject) {
+		this.kvDb.rpush([k, v], function(err) {
+			err && reject(err);
+			err || resolve();
+		});
+	}.bind(this));
+});
 
 function client(kvDb, nosqlDb) {
 	return new PsDb(kvDb, nosqlDb);
