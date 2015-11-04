@@ -4,6 +4,7 @@ var Q = require('q'),
 	util = require('util'),
 	_ = require('lodash'),
 	uuid = require('node-uuid'),
+	WebSocket = require('ws'),
 	EventEmitter = require('events').EventEmitter;
 
 /*
@@ -62,7 +63,10 @@ PsWs.prototype.listen = function(save) {
 PsWs.prototype.open = function() {
 	return Q.Promise(function(resolve) {
 		this.socket.on('open', function() {
+
 			this.connection = this.socket;
+			this.connection.on('message', onmessage(null).bind(this));
+
 			resolve();
 		}.bind(this));
 	}.bind(this));
@@ -91,6 +95,17 @@ PsWs.prototype.send = function(type, msg) {
 		throw e;
 	}
 }
+
+PsWs.prototype.notify = function(channel, msg, clientId) {
+	var clientSocket = this.clients[clientId];
+	if (clientSocket && clientSocket.readyState === WebSocket.OPEN) {
+		clientSocket.send(JSON.stringify({
+			type: 'notify',
+			channel: channel,
+			msg: msg
+		}));
+	}
+};
 
 function connect(socket) {
 	return new PsWs(socket);

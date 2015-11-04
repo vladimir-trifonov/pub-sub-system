@@ -11,10 +11,10 @@ function PsDb(kvDb, nosqlDb) {
 
 PsDb.prototype.saveMsg = function(channel, msg) {
 	return saveDoc.call(this, {
-			channel: channel,
-			msg: msg,
-			updated: new Date()
-		});
+		channel: channel,
+		msg: msg,
+		updated: new Date()
+	});
 }
 
 PsDb.prototype.chsSub = function(id, channels) {
@@ -22,6 +22,15 @@ PsDb.prototype.chsSub = function(id, channels) {
 		async.each(channels, pushValueByKey(id).bind(this), function(err) {
 			err && reject(err);
 			err || resolve();
+		});
+	}.bind(this));
+}
+
+PsDb.prototype.getChSubs = function(channel) {
+	return Q.Promise(function(resolve, reject) {
+		this.kvDb.lrange(channel, 0, -1, function(err, reply) {
+			err && reject(err);
+			err || resolve(reply);
 		});
 	}.bind(this));
 }

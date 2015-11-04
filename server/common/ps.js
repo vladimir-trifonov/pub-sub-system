@@ -1,7 +1,7 @@
 'use strict';
 
-var Q = require('q'),
-	util = require('util'),
+var util = require('util'),
+	_ = require('lodash'),
 	EventEmitter = require('events').EventEmitter;
 
 /*
@@ -64,6 +64,9 @@ function ondata (data) {
 			chsSub.call(this, data.id, data.channels);
 			onNewSubscr.call(this, data.id, data.channels);
 			break;
+		case 'notify':
+			console.log(data);
+			break;
 	}
 }
 
@@ -77,21 +80,28 @@ function onNewData(channel, msg) {
 		channel: channel,
 		msg: msg
 	});
-	notifyChannel(channel, msg);
+	notifyChannel.call(this, channel, msg);
 }
 
 function saveMsg(channel, msg) {
-	if (!this.db) {
-		return Q.reject('No db');
-	}
-
 	return this.db.saveMsg(channel, msg);
 }
 
 
 // OnSubscribe
-function notifyChannel() {
+function notifyChannel(channel, msg) {
+	getChSubs.call(this, channel)
+		.then(notifySubs(channel, msg).bind(this));
+}
 
+var notifySubs = _.curry(function (channel, msg, subscrs) {
+	_.map(subscrs, function(subscr) {
+		this.connection.notify(channel, msg, subscr)
+	}.bind(this));
+});
+
+function getChSubs(channel) {
+	return this.db.getChSubs(channel);
 }
 
 function onNewSubscr(id, channels) {
@@ -99,14 +109,10 @@ function onNewSubscr(id, channels) {
 		id: id,
 		channels: channels
 	});
-	initSubscriber(id, channels);
+	initSubscriber.call(this, id, channels);
 }
 
 function chsSub(id, channels) {
-	if (!this.db) {
-		return Q.reject('No db');
-	}
-
 	return this.db.chsSub(id, channels);
 }
 
@@ -171,9 +177,9 @@ function Client(options) {
 
 	this.channels = options.channels;
 
-	this.connection.listen();
 	this.connection.open()
 		.then(subscribe(this.channels).bind(this));
+	this.connection.on('data', ondata.bind(this));
 
 	EventEmitter.call(this);
 	return this;
