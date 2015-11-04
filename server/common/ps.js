@@ -18,8 +18,6 @@ function Ps(options) {
 	this.connection = require('./ps-ws').connect(options.socket);
 }
 
-
-
 /*
  * Broker implementation
  *
@@ -48,6 +46,15 @@ Broker.prototype.constructor = Broker;
 
 util.inherits(Broker, EventEmitter);
 
+/*
+ * Broker dependency injection
+ */
+function broker(options) {
+	return new Broker(options);
+}
+
+module.exports.broker = broker;
+
 // Broker Functions
 
 function ondata(data) {
@@ -61,18 +68,25 @@ function ondata(data) {
 			onNewSubscr.call(this, data.id, data.channels);
 			break;
 		case 'notify':
-			onNewNotification.call(this, data.channel, data.msgs);
+			onNewNotifications.call(this, data.notifications);
 			break;
 	}
 }
 
 // OnPublish
-function notifySubscriber() {
-
+function sendLast(subscr, channels) {
+	this.db.getLastMsgs(channels)
+		.then(function(data) {
+			this.connection.notify(subscr, {
+				notifications: data
+			});
+		}.bind(this));
 }
 
-function onNewNotification(channel, msgs) {
-	_.map(msgs, emitData(channel).bind(this));
+function onNewNotifications(data) {
+	_.map(Object.keys(data), function(ch) {
+		_.map(data[ch], emitData(ch).bind(this));
+	}.bind(this));
 }
 
 function onNewData(channel, msg) {
@@ -97,10 +111,12 @@ function notifyChannel(channel, msg) {
 
 var notifySubs = _.curry(function(channel, msgs, subscrs) {
 	_.map(subscrs, function(subscr) {
-		this.connection.notify({
-			channel: channel,
-			msgs: msgs
-		}, subscr);
+		var data = {};
+		data[channel] = msgs;
+
+		this.connection.notify(subscr, {
+			notifications: data
+		});
 	}.bind(this));
 });
 
@@ -113,14 +129,12 @@ function onNewSubscr(id, channels) {
 		id: id,
 		channels: channels
 	});
-	notifySubscriber.call(this, id, channels);
+	sendLast.call(this, id, channels);
 }
 
 function chsSub(id, channels) {
 	return this.db.chsSub(id, channels);
 }
-
-
 
 /*
  * Publisher implementation
@@ -158,7 +172,14 @@ Publisher.prototype.destroy = function() {
 	this.connection = null;
 }
 
+/*
+ * Publisher dependency injection
+ */
+function publisher(options) {
+	return new Publisher(options);
+}
 
+module.exports.publisher = publisher;
 
 /*
  * Client implementation
@@ -196,26 +217,6 @@ function subscribe(channels) {
 		}
 	}
 }
-
-
-
-/*
- * Broker dependency injection
- */
-function broker(options) {
-	return new Broker(options);
-}
-
-module.exports.broker = broker;
-
-/*
- * Publisher dependency injection
- */
-function publisher(options) {
-	return new Publisher(options);
-}
-
-module.exports.publisher = publisher;
 
 /*
  * Client dependency injection

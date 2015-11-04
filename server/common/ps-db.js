@@ -2,6 +2,7 @@
 
 var Q = require('q'),
 	async = require('async'),
+	moment = require('moment'),
 	_ = require('lodash');
 
 function PsDb(kvDb, nosqlDb) {
@@ -10,10 +11,10 @@ function PsDb(kvDb, nosqlDb) {
 }
 
 PsDb.prototype.saveMsg = function(channel, msg) {
-	return saveDoc.call(this, {
+	return insertDoc.call(this, {
 		channel: channel,
 		msg: msg,
-		updated: new Date()
+		updated: moment().toDate()
 	});
 }
 
@@ -35,7 +36,49 @@ PsDb.prototype.getChSubs = function(channel) {
 	}.bind(this));
 }
 
-var saveDoc = function(doc) {
+PsDb.prototype.getLastMsgs = function(channels) {
+	return Q.Promise(function(resolve, reject) {
+		var filterDate = moment().subtract(30, 'minutes').toDate();
+
+		this.nosqlDb.find({
+			$and: [{
+				channel: {
+					$in: channels
+				}
+			}, {
+				updated: {
+					$gte: filterDate
+				}
+			}]
+		}).toArray(function(err, data) {
+			if (err) {
+				return reject(err);
+			}
+
+			err || resolve(groupAndConcatMsgsByChs(data));
+		});
+	}.bind(this));
+}
+
+var groupAndConcatMsgsByChs = function(data) {
+	return _.chain(data)
+		.groupBy('channel')
+		.map(function(chInfo, ch) {
+			var mapped = {};
+			mapped[ch] = _.pluck(chInfo, 'msg');
+
+			return mapped;
+		})
+		.reduce(function(result, n) {
+			var key = Object.keys(n)[0];
+			result[key] = n[key];
+
+			return result;
+		}, {})
+		.value()
+}
+
+var insertDoc = function(doc) {
 	return Q.Promise(function(resolve, reject) {
 		this.nosqlDb.insert(doc, function(err) {
 			err && reject(err);

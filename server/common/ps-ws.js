@@ -100,7 +100,7 @@ PsWs.prototype.send = function(type, msg) {
 	}
 }
 
-PsWs.prototype.notify = function(msg, clientId) {
+PsWs.prototype.notify = function(clientId, msg) {
 	var clientSocket = this.clients[clientId];
 	if (clientSocket && clientSocket.readyState === WebSocket.OPEN) {
 		clientSocket.send(JSON.stringify(util._extend({
