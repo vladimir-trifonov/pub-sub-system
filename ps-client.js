@@ -4,7 +4,7 @@ var port = process.argv[2] || 3001,
 	WebSocket = require('ws'),
 	ws = new WebSocket('ws://localhost:' + port),
 	_ = require('lodash'),
-	ps = require('./server/common/ps');
+	ps = require('./ps/ps');
 
 var getChannels = function() {
 	var cnt = 0;

@@ -15,7 +15,7 @@ var WebSocketServer = require('ws').Server,
 	});
 
 var initPubSub = function(mongo) {
-	var ps = require('./server/common/ps'),
+	var ps = require('./ps/ps'),
 		broker = ps.broker({
 			socket: wss,
 			redis: client,
