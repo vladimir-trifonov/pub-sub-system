@@ -2,13 +2,14 @@
 
 var Q = require('q');
 
-function PsRedis(client) {
-	this.client = client;
+function PsDb(kvDb, nosqlDb) {
+	this.kvDb = kvDb;
+	this.nosqlDb = nosqlDb;
 }
 
-PsRedis.prototype.saveMsg = function(k, v) {
+PsDb.prototype.saveMsg = function(k, v) {
 	return Q.Promise(function(resolve, reject) {
-		// this.client.rpush([k + '-messages', v], function(err) {
+		// this.kvDb.rpush([k + '-messages', v], function(err) {
 		// 	err && reject(err);
 		// 	err || resolve({
 		// 		channel: k,
@@ -19,14 +20,14 @@ PsRedis.prototype.saveMsg = function(k, v) {
 	}.bind(this));
 }
 
-PsRedis.prototype.subscrChannels = function(data) {
+PsDb.prototype.subscrChannels = function(data) {
 	return Q.Promise(function(resolve, reject) {
 		resolve(data);
 	}.bind(this));
 }
 
-function client(client) {
-	return new PsRedis(client);
+function client(kvDb, nosqlDb) {
+	return new PsDb(kvDb, nosqlDb);
 }
 
 module.exports.client = client;

@@ -31,14 +31,18 @@ var send = _.curry(function(to, data) {
 	}
 });
 
-var proceed = _.flowRight(send(publisher), parse);
-var onRead = function() {
-	var chunk = process.stdin.read();
-	if (chunk !== null) {
-		proceed(chunk);
+var initPublisher = function() {
+	var proceed = _.flowRight(send(publisher), parse);
+	var onRead = function() {
+		var chunk = process.stdin.read();
+		if (chunk !== null) {
+			proceed(chunk);
+		}
 	}
+
+	process.stdin.setEncoding('utf8');
+	process.stdin.on('readable', onRead);
+	process.stdin.on('end', publisher.destroy);
 }
 
-process.stdin.setEncoding('utf8');
-process.stdin.on('readable', onRead);
-process.stdin.on('end', publisher.destroy);
+initPublisher();

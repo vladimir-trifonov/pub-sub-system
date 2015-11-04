@@ -18,72 +18,27 @@ function Ps(options) {
 	this.connection = require('./ps-ws').connect(options.socket);
 }
 
+
+
+
+
+
+
 /*
- * Broker implementation.
+ * Broker implementation
+ *
+ *
  */
-var notifyChannel = function() {
-
-}
-
-var initSubscriber = function() {
-
-}
-
-var newData = function(channel, msg) {
-	this.emit('data', {
-		channel: channel,
-		msg: msg
-	});
-	notifyChannel(channel, msg);
-}
-
-var newSubscr = function(id, channels) {
-	this.emit('data', {
-		id: id,
-		channels: channels
-	});
-	initSubscriber(id, channels);
-}
-
-var saveMsg = function(channel, msg) {
-	if (!this.db) {
-		return Q.reject('No db');
-	}
-
-	return this.db.saveMsg(channel, msg);
-}
-
-var subscrChannels = function(data) {
-	if (!this.db) {
-		return Q.reject('No db');
-	}
-
-	return this.db.subscrChannels(data);
-}
-
-var ondata = function(data) {
-	switch (data.type) {
-		case 'publish':
-			saveMsg(data.channel, data.msg);
-			newData(data.channel, data.msg);
-			break;
-		case 'subscribe':
-			subscrChannels(data.id, data.channels);
-			newSubscr(data.id, data.channels);
-			break;
-	}
-}
-
 function Broker(options) {
 	Ps.call(this, {
 		socket: options.socket
 	});
 
-	if (!options.redis) {
-		throw new Error('No db');
+	if (!options.redis || !options.mongo) {
+		throw new Error('Missing db');
 	}
 
-	this.db = require('./ps-redis').client(options.redis);
+	this.db = require('./ps-db').client(options.redis, options.mongo);
 
 	this.connection.listen(true);
 	this.connection.on('data', ondata.bind(this));
@@ -97,8 +52,72 @@ Broker.prototype.constructor = Broker;
 
 util.inherits(Broker, EventEmitter);
 
+// Broker Functions
+
+function ondata (data) {
+	switch (data.type) {
+		case 'publish':
+			saveMsg.call(this, data.channel, data.msg);
+			newData.call(this, data.channel, data.msg);
+			break;
+		case 'subscribe':
+			subscrChannels.call(this, data.id, data.channels);
+			newSubscr.call(this, data.id, data.channels);
+			break;
+	}
+}
+
+function notifyChannel() {
+
+}
+
+function initSubscriber() {
+
+}
+
+function newData(channel, msg) {
+	this.emit('data', {
+		channel: channel,
+		msg: msg
+	});
+	notifyChannel(channel, msg);
+}
+
+function newSubscr(id, channels) {
+	this.emit('data', {
+		id: id,
+		channels: channels
+	});
+	initSubscriber(id, channels);
+}
+
+function saveMsg(channel, msg) {
+	if (!this.db) {
+		return Q.reject('No db');
+	}
+
+	return this.db.saveMsg(channel, msg);
+}
+
+function subscrChannels(data) {
+	if (!this.db) {
+		return Q.reject('No db');
+	}
+
+	return this.db.subscrChannels(data);
+}
+
+
+
+
+
+
+
+
 /*
- * Publisher implementation.
+ * Publisher implementation
+ *
+ *
  */
 function Publisher(options) {
 	Ps.call(this, {
@@ -131,19 +150,17 @@ Publisher.prototype.destroy = function() {
 	this.connection = null;
 }
 
-/*
- * Client implementation.
- */
-var subscribe = function(channels) {
-	return function() {
-		try {
-			this.connection.send('subscribe', {channels: channels});
-		} catch (e) {
-			throw e;
-		}
-	}
-};
 
+
+
+
+
+
+/*
+ * Client implementation
+ *
+ *
+ */
 function Client(options) {
 	Ps.call(this, {
 		socket: options.socket
@@ -163,6 +180,22 @@ Client.prototype = Ps;
 Client.prototype.constructor = Client;
 
 util.inherits(Client, EventEmitter);
+
+function subscribe(channels) {
+	return function() {
+		try {
+			this.connection.send('subscribe', {channels: channels});
+		} catch (e) {
+			throw e;
+		}
+	}
+}
+
+
+
+
+
+
 
 /*
  * Broker dependency injection
