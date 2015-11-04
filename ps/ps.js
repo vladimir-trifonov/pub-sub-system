@@ -89,8 +89,8 @@ function sendLast(subscr, channels) {
 }
 
 function onNewNotifications(data) {
-	_.map(Object.keys(data), function(ch) {
-		_.map(data[ch], emitData(ch).bind(this));
+	_.each(Object.keys(data), function(ch) {
+		_.each(data[ch], emitData(ch).bind(this));
 	}.bind(this));
 }
 
@@ -114,7 +114,7 @@ function notifyChannel(channel, msg) {
 }
 
 var notifySubs = _.curry(function(channel, msgs, subscrs) {
-	_.map(subscrs, function(subscr) {
+	_.each(subscrs, function(subscr) {
 		var data = {};
 		data[channel] = msgs;
 

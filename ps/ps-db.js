@@ -18,13 +18,13 @@ PsDb.prototype.saveMsg = function(channel, msg) {
 }
 
 PsDb.prototype.chsSub = function(id, channels) {
-	_.map(channels, chSub(id).bind(this));
+	_.each(channels, chSub(id).bind(this));
 	this.kvDb.rpush([id + '-usr'].concat(channels));
 }
 
 PsDb.prototype.chsUnsub = function(id) {
 	this.kvDb.lrange(id + '-usr', 0, -1, function(err, channels) {
-		_.map(channels, chUnsub(id).bind(this));
+		_.each(channels, chUnsub(id).bind(this));
 		this.kvDb.del(id + '-usr');
 	}.bind(this));
 }
