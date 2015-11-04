@@ -1,6 +1,6 @@
 'use strict';
 
-var port = process.argv[2] || 3001,
+var port = process.argv[2],
 	WebSocket = require('ws'),
 	ws = new WebSocket('ws://localhost:' + port),
 	_ = require('lodash'),

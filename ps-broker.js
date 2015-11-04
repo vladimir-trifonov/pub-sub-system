@@ -1,6 +1,6 @@
 'use strict';
 
-var port = process.argv[2] || 3001,
+var port = process.argv[2],
 	redis = require('redis'),
 	debug = require('debug')('ps-broker'),
 	client = redis.createClient(),
