@@ -4,7 +4,8 @@ var ns = ns || {};
 
 (function(app) {
 	var Pubsub = function(selector) {
-		this._compile(selector);
+		this.selector = selector;
+		this._compile();
 
 		return this;
 	};
@@ -13,17 +14,17 @@ var ns = ns || {};
 		var p = Object.create(null);
 		p.constructor = Pubsub;
 
-		p._compile = function(selector) {
-			$.get("templates/pubsub.hbs").then(function(src) {
+		p._compile = function() {
+			$.get('templates/pubsub.hbs').then(function(src) {
 				this.tpl = Handlebars.compile(src)();
 
-				this._render(selector);
+				this._render();
 				this._renderMenu();
 			}.bind(this));
 		};
 
-		p._render = function(selector) {
-			$(selector).append(this.tpl);
+		p._render = function() {
+			$(this.selector).append(this.tpl);
 			this._initEventHandlers();
 		};
 
