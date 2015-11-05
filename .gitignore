@@ -2,3 +2,4 @@
 /.eslintrc
 /.vscode/launch.json
 /dump.rdb
+/public/lib
