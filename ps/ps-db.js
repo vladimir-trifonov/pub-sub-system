@@ -40,7 +40,9 @@ PsDb.prototype.chsUnsub = function(id) {
 }
 
 var chSub = _.curry(function(v, k) {
-	this.kvDb.rpush([k + '-ch', v]);
+	if (_.isString(k) && k !== '') {
+		this.kvDb.rpush([k + '-ch', v]);
+	}
 });
 
 var chUnsub = _.curry(function(v, k) {
@@ -50,10 +52,15 @@ var chUnsub = _.curry(function(v, k) {
 // Get clients subscribed for specific channel updates
 PsDb.prototype.getChSubs = function(channel) {
 	return Q.Promise(function(resolve, reject) {
-		this.kvDb.lrange(channel + '-ch', 0, -1, function(err, reply) {
-			err && reject(err);
-			err || resolve(reply);
-		});
+		if (_.isString(channel) && channel !== '') {
+			this.kvDb.lrange(channel + '-ch', 0, -1, function(err, reply) {
+				err && reject(err);
+				err || resolve(reply);
+			});
+		} else {
+			resolve([]);
+		}
+
 	}.bind(this));
 }
 
@@ -61,7 +68,6 @@ PsDb.prototype.getChSubs = function(channel) {
 PsDb.prototype.getLastMsgs = function(channels) {
 	return Q.Promise(function(resolve, reject) {
 		var filterDate = moment().subtract(30, 'minutes').toDate();
-
 		this.nosqlDb.find({
 			$and: [{
 				channel: {

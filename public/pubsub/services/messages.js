@@ -37,7 +37,7 @@ var ns = ns || {};
 				callback();
 			} else {
 				setTimeout(function() {
-					this.waitForConnection(callback, interval);
+					this._waitForConnection(callback, interval);
 				}.bind(this), interval);
 			}
 		};

@@ -22,7 +22,7 @@ var ns = ns || {};
 
 				this._send.call(this.client, {
 					type: 'subscribe',
-					channels: [channels]
+					channels: channels
 				});
 
 				this._addSubscr(channels)
