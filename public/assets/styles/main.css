@@ -142,6 +142,17 @@ table {
    Custom styles
    ==================================================== */
 
+body,
+html {
+  font-family: 'open_sanslight', sans-serif;
+}
+
+a,
+a:focus,
+a:hover {
+  text-decoration: none;
+}
+
 .overlay {
   margin: 0px;
   padding: 0px;
@@ -252,10 +263,22 @@ table {
    Content styles
    ==================================================== */
 
+h1 {
+  color: #fff;
+  font-size: 22px;
+  margin: 15px;
+  line-height: 1.1;
+  margin: 0.5em 0;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.33);
+  font-size: 2em;
+  font-family: 'open_sansbold', sans-serif;
+}
+
 #main-content > div {
+  padding: 1%;
   display: none;
   width: 70%;
-  min-height: 600px;
+  min-height: 300px;
   margin-top: 100px;
   margin-left: 20%;
   background-color: rgba(0, 0, 0, 0.1);
@@ -268,4 +291,76 @@ table {
     margin-left: auto;
     margin-right: auto;
   }
+}
+
+#pub-client .wrap {
+  width: 90%;
+  margin: 0 auto;
+  text-align: left;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+#pub-client .controls {
+  text-align: right;
+}
+
+#pub-client input {
+  width: 70%;
+  color: #fff;
+  padding: 10px;
+}
+
+#pub-client input.half-width {
+  width: 35%;
+}
+
+#pub-client a {
+  width: 26%;
+  display: inline-block;
+  color: #000;
+  border: 1px solid #fff;
+  padding: 12px;
+  color: #fff;
+}
+
+#pub-client a:hover {
+  color: #000;
+  text-shadow: none;
+  background-color: #fff;
+  border-color: #fff;
+}
+
+input,
+input:focus {
+  border: none;
+  background: rgba(0, 0, 0, 0.2);
+  color: #fff;
+}
+
+::-webkit-input-placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+:-moz-placeholder {
+  /* Firefox 18- */
+  color: rgba(255, 255, 255, 0.7);
+}
+
+::-moz-placeholder {
+  /* Firefox 19+ */
+  color: rgba(255, 255, 255, 0.7);
+}
+
+:-ms-input-placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+textarea:focus,
+input:focus,
+input[type]:focus,
+.uneditable-input:focus {
+  border-color: rgba(0, 0, 0, 0.8);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(0, 0, 0, 0.6);
+  outline: 0 none;
 }

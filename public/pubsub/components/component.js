@@ -3,12 +3,13 @@
 var ns = ns || {};
 
 (function(app) {
-	var Component = function(parentSel, sel, templatePath) {
+	var Component = function(ns, parentSel, sel, templatePath) {
 		EventDispatcher.prototype.apply(this);
 
 		this.templatePath = templatePath;
 		this.parentSel = parentSel;
 		this.sel = sel;
+		this.config = app.config[ns];
 		this.compile();
 
 		return this;
@@ -23,21 +24,22 @@ var ns = ns || {};
 				this.tpl = Handlebars.compile(src)();
 
 				this._render();
-				setTimeout(function() {
-					this._initEventHandlers();
-				}.bind(this), 10);
+				this._afterInit();
+				setTimeout(this._initEventHandlers.bind(this), 10);
 			}.bind(this));
 		};
 
 		p.destroy = function() {
 			this._removeEventHandlers();
-			$(this.sel).remove();
+			this._beforeDestroy();
+
+			$(this.parentSel).find(this.sel).remove();
 		};
 
 		p._render = function() {
 			$(this.parentSel).append(this.tpl);
 			setTimeout(function() {
-				$(this.sel).show(500);
+				$(this.parentSel).find(this.sel).show(500);
 			}.bind(this), 10);
 		};
 
@@ -45,6 +47,13 @@ var ns = ns || {};
 			// Virtual
 		};
 		p._removeEventHandlers = function() {
+			// Virtual
+		};
+
+		p._afterInit = function() {
+			// Virtual
+		};
+		p._beforeDestroy = function() {
 			// Virtual
 		};
 

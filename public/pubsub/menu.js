@@ -32,9 +32,8 @@ var ns = ns || {};
 
 		p._initEventHandlers = function() {
 			var _self = this;
-			$(this.sel).on('click', 'a', function(e) {
+			$(this.parentSel).find(this.sel).on('click', 'a', function(e) {
 				e.preventDefault();
-				e.stopImmediatePropagation();
 
 				var evType = $(this).attr('data-ev');
 				_self.dispatchEvent( { type: evType } );
