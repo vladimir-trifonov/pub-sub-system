@@ -3,8 +3,10 @@
 var ns = ns || {};
 
 (function(app) {
-	var Pubsub = function(selector) {
-		this.selector = selector;
+	var Pubsub = function(parentSel) {
+		this.menu = null;
+
+		this.parentSel = parentSel;
 		this._compile();
 
 		return this;
@@ -20,19 +22,35 @@ var ns = ns || {};
 
 				this._render();
 				this._renderMenu();
+				this._initEventHandlers();
 			}.bind(this));
 		};
 
 		p._render = function() {
-			$(this.selector).append(this.tpl);
-			this._initEventHandlers();
+			$(this.parentSel).append(this.tpl);
 		};
 
 		p._renderMenu = function() {
-			app.menu = new app.Menu('#left-sidebar');
+			this.menu = new app.Menu('#left-sidebar');
 		};
 
-		p._initEventHandlers = function() {};
+		p._initEventHandlers = function() {
+			this.menu.addEventListener('pubClient', function() {
+				if(this.mainContent) {
+					this.mainContent.destroy();
+				}
+
+				this.mainContent = new app.PubClient('#main-content');
+			}.bind(this));
+
+			this.menu.addEventListener('chat', function() {
+				if(this.mainContent) {
+					this.mainContent.destroy();
+				}
+
+				this.mainContent = new app.Chat('#main-content');
+			}.bind(this));
+		};
 
 		return p;
 	}());
