@@ -265,7 +265,18 @@ a:hover {
 
 h1 {
   color: #fff;
-  font-size: 22px;
+  font-size: 20px;
+  margin: 15px;
+  line-height: 1.1;
+  margin: 0.5em 0;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.33);
+  font-size: 2em;
+  font-family: 'open_sansbold', sans-serif;
+}
+
+h2 {
+  color: #fff;
+  font-size: 16px;
   margin: 15px;
   line-height: 1.1;
   margin: 0.5em 0;
@@ -290,6 +301,8 @@ h1 {
     width: 80%;
     margin-left: auto;
     margin-right: auto;
+    padding-bottom: 30px;
+    overflow: hidden;
   }
 }
 
@@ -336,6 +349,37 @@ input:focus {
   border: none;
   background: rgba(0, 0, 0, 0.2);
   color: #fff;
+}
+
+.msg-item {
+  height: 30px;
+  line-height: 30px;
+  width: 80%;
+  color: #fff;
+  color: #fff;
+  margin: 0 auto;
+  position: relative;
+  font-size: 14px;
+  margin-bottom: 5px;
+  clear: both;
+}
+
+.msg-item > span {
+  display: inline-block;
+  border: 1px solid #143118;
+  width: 48%;
+  padding: 0 10px;
+  margin: 2px;
+}
+
+.msg-item small {
+  color: #fff;
+  font-size: 9px;
+  font-style: italic;
+}
+
+.msg-item > span:first-child {
+  float: left;
 }
 
 ::-webkit-input-placeholder {

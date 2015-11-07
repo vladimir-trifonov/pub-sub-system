@@ -1,4 +1,4 @@
-/* global $ */
+/* global $, _ */
 'use strict';
 var ns = ns || {};
 
@@ -14,45 +14,50 @@ var ns = ns || {};
 		p.constructor = PubClient;
 
 		p._initEventHandlers = function() {
-			$(this.parentSel).find(this.sel).on('click.' + this.ns, '#to-subscribe', function(e) {
-				e.preventDefault();
-
-				var $elCh = $('input[name=to-subscribe]');
-				var channels = $elCh.val().split(' ');
-
-				this._send.call(this.client, {
-					type: 'subscribe',
-					channels: channels
-				});
-
-				this._addSubscr(channels)
-				$elCh.val('');
-			}.bind(this));
-
-			$(this.parentSel).find(this.sel).on('click.' + this.ns, '#to-publish', function(e) {
-				e.preventDefault();
-
-				var $toChEl = $(this.parentSel).find('input[name=to-channel]');
-				var $toPublishEl = $(this.parentSel).find('input[name=to-publish]');
-
-				this._send.call(this.publisher, {
-					type: 'publish',
-					channel: $toChEl.val(),
-					msg: $toPublishEl.val()
-				});
-
-				$toChEl.val('')
-				$toPublishEl.val('')
-			}.bind(this));
+			this.$el.on('click.' + this.ns, '#to-subscribe', this._onSubscr.bind(this));
+			this.$el.on('click.' + this.ns, '#to-publish', this._onPublish.bind(this));
 		};
 
+		p._onSubscr = function(e) {
+			e.preventDefault();
+
+			var $elCh = $('input[name=to-subscribe]');
+			var channels = $elCh.val().split(' ');
+
+			this._send.call(this.client, {
+				type: 'subscribe',
+				channels: channels
+			});
+
+			$elCh.val('');
+		}
+
+		p._onPublish = function(e) {
+			e.preventDefault();
+
+			var $toChEl = this.$el.find('input[name=to-channel]');
+			var $toPublishEl = this.$el.find('input[name=to-publish]');
+
+			this._send.call(this.publisher, {
+				type: 'publish',
+				channel: $toChEl.val(),
+				msg: $toPublishEl.val()
+			});
+
+			$toChEl.val('')
+			$toPublishEl.val('')
+		}
+
 		p._removeEventHandlers = function() {
-			$(this.parentSel).find(this.sel).off('click.' + this.ns, '#to-subscribe');
-			$(this.parentSel).find(this.sel).off('click.' + this.ns, '#to-publish');
+			this.$el.off('click.' + this.ns, '#to-subscribe');
+			this.$el.off('click.' + this.ns, '#to-publish');
 		};
 
 		p._afterInit = function() {
-			this.publisher = new app.Messages(this.config.publisherConnStr);
+			this.$el = $(this.parentSel).find(this.sel);
+			this.$msgEl = this.$el.find('.messages');
+
+			this.publisher = new app.Messages(this.config.publisherConnStr, true);
 			this.client = new app.Messages(this.config.clientConnStr, true);
 
 			this._initWsEventHandlers();
@@ -64,8 +69,6 @@ var ns = ns || {};
 		};
 
 		p._removeWsEventHandlers = function() {
-			this.publisher.removeEventListener('connect');
-			this.publisher.removeEventListener('disconnect');
 			this.client.removeEventListener('connect');
 			this.client.removeEventListener('disconnect');
 		};
@@ -83,7 +86,9 @@ var ns = ns || {};
 		p._onWsConnected = function(instance) {
 			return function() {
 				instance.addEventListener('message', function(e) {
-					this._printMsgs(e.message);
+					if (e.message.type === 'notify') {
+						this._onNewNotifications(e.message);
+					}
 				}.bind(this));
 			}.bind(this);
 		}
@@ -98,13 +103,15 @@ var ns = ns || {};
 			this.send(message);
 		}
 
-		p._addSubscr = function(channels) {
-			console.log(channels);
+		p._onNewNotifications = function(data) {
+			_.each(Object.keys(data.notifications), function(ch) {
+				_.each(data.notifications[ch], this._renderMsgs(ch).bind(this));
+			}.bind(this));
 		}
 
-		p._printMsgs = function(msgs) {
-			console.log(msgs);
-		}
+		p._renderMsgs = _.curry(function(channel, msg) {
+			this.$msgEl.append('<div class="msg-item"><span><small>topic:&nbsp;</small>' + channel + '</span><span><small>message:&nbsp;</small>' + msg + '</span></div>')
+		});
 
 		return p;
 	}());

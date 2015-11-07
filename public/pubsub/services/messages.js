@@ -5,6 +5,7 @@ var ns = ns || {};
 (function(app) {
 	function Messages(connectionStr, canListen) {
 		EventDispatcher.prototype.apply(this);
+
 		this.connectionStr = connectionStr;
 		this.canListen = canListen;
 
@@ -55,11 +56,30 @@ var ns = ns || {};
 				});
 			}.bind(this);
 
+			this.socket.onerror = function(e) {
+				this.dispatchEvent({
+					type: 'error',
+					message: e
+				});
+				console.log(e);
+			}.bind(this);
+
 			if (this.canListen) {
 				this.socket.onmessage = function(e) {
+					var data = {};
+
+					try {
+						data = JSON.parse(e.data);
+					} catch (err) {
+						return this.dispatchEvent({
+							type: 'error',
+							message: err
+						});
+					}
+
 					this.dispatchEvent({
 						type: 'message',
-						message: e.data
+						message: data
 					});
 				}.bind(this);
 			}

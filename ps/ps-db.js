@@ -46,7 +46,9 @@ var chSub = _.curry(function(v, k) {
 });
 
 var chUnsub = _.curry(function(v, k) {
-	this.kvDb.lrem(k + '-ch', 0, v);
+	if (_.isString(k) && k !== '') {
+		this.kvDb.lrem(k + '-ch', 0, v);
+	}
 });
 
 // Get clients subscribed for specific channel updates
@@ -68,6 +70,7 @@ PsDb.prototype.getChSubs = function(channel) {
 PsDb.prototype.getLastMsgs = function(channels) {
 	return Q.Promise(function(resolve, reject) {
 		var filterDate = moment().subtract(30, 'minutes').toDate();
+
 		this.nosqlDb.find({
 			$and: [{
 				channel: {
@@ -95,7 +98,8 @@ PsDb.prototype.getLastMsgs = function(channels) {
 // Transfor mongoDb data to the following format:
 // {<channel_name>: [messages], <channel_name>: [messages], ...}
 var groupAndConcatMsgsByChs = function(data) {
-	return _.chain(data)
+	return _
+		.chain(data)
 		.groupBy('channel')
 		.map(function(chInfo, ch) {
 			var mapped = {};

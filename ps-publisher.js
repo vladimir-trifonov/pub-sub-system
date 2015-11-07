@@ -9,7 +9,7 @@
 
 var port = process.argv[2],
 	WebSocket = require('ws'),
-	ws = new WebSocket('ws://localhost:' + port),
+	ws = new WebSocket('ws://localhost:' + port + '/websocket'),
 	_ = require('lodash'),
 	ps = require('./ps/ps'),
 	publisher = ps.publisher({

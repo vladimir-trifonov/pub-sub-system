@@ -18,7 +18,8 @@ var port = process.argv[2],
 
 var WebSocketServer = require('ws').Server,
 	wss = new WebSocketServer({
-		port: port
+		port: port,
+		path: '/websocket'
 	});
 
 // Starts the broker
