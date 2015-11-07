@@ -34,6 +34,10 @@ var ns = ns || {};
 		};
 
 		p._waitForConnection = function(callback, interval) {
+			if(!this.socket) {
+				return;
+			}
+
 			if (this.socket.readyState === 1) {
 				callback();
 			} else {
@@ -54,14 +58,6 @@ var ns = ns || {};
 				this.dispatchEvent({
 					type: 'disconnect'
 				});
-			}.bind(this);
-
-			this.socket.onerror = function(e) {
-				this.dispatchEvent({
-					type: 'error',
-					message: e
-				});
-				console.log(e);
 			}.bind(this);
 
 			if (this.canListen) {
