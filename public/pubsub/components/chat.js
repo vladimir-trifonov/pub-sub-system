@@ -18,7 +18,7 @@ var ns = ns || {};
 		};
 
 		p._subscrTo = function(channels) {
-			this._send.call(this.client, {
+			this._send.call(this.chat, {
 				type: 'subscribe',
 				channels: channels
 			});
@@ -30,7 +30,7 @@ var ns = ns || {};
 			var $toChEl = this.$el.find('input[name=to-channel]');
 			var $toPublishEl = this.$el.find('input[name=to-publish]');
 
-			this._send.call(this.publisher, {
+			this._send.call(this.chat, {
 				type: 'publish',
 				channel: $toChEl.val(),
 				msg: $toPublishEl.val()
@@ -48,30 +48,26 @@ var ns = ns || {};
 			this.$el = $(this.parentSel).find(this.sel);
 			this.$msgEl = this.$el.find('.messages');
 
-			this.publisher = new app.Messages(this.config.publisherConnStr, true);
-			this.client = new app.Messages(this.config.clientConnStr, true);
+			this.chat = new app.Messages(this.config.chatConnStr, true);
 
 			this._initWsEventHandlers();
 		};
 
 		p._initWsEventHandlers = function() {
-			this.client.addEventListener('connect', this._onWsConnected.call(this, this.client, app.channels));
-			this.client.addEventListener('disconnect', this._onWsDisconnected.call(this, this.client));
+			this.chat.addEventListener('connect', this._onWsConnected.call(this, this.chat, app.channels));
+			this.chat.addEventListener('disconnect', this._onWsDisconnected.call(this, this.chat));
 		};
 
 		p._removeWsEventHandlers = function() {
-			this.client.removeEventListener('connect');
-			this.client.removeEventListener('disconnect');
+			this.chat.removeEventListener('connect');
+			this.chat.removeEventListener('disconnect');
 		};
 
 		p._beforeDestroy = function() {
 			this._removeWsEventHandlers();
 
-			this.publisher.close();
-			this.client.close();
-
-			this.publisher = null;
-			this.client = null;
+			this.chat.close();
+			this.chat = null;
 		};
 
 		p._onWsConnected = function(instance, channels) {
