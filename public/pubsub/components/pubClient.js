@@ -57,7 +57,7 @@ var ns = ns || {};
 			this.$el = $(this.parentSel).find(this.sel);
 			this.$msgEl = this.$el.find('.messages');
 
-			this.publisher = new app.Messages(this.config.publisherConnStr, true);
+			this.publisher = new app.Messages(this.config.publisherConnStr);
 			this.client = new app.Messages(this.config.clientConnStr, true);
 
 			this._initWsEventHandlers();
@@ -104,13 +104,13 @@ var ns = ns || {};
 		}
 
 		p._onNewNotifications = function(data) {
-			_.each(Object.keys(data.notifications), function(ch) {
-				_.each(data.notifications[ch], this._renderMsgs(ch).bind(this));
+			_.map(Object.keys(data.notifications), function(ch) {
+				_.map(data.notifications[ch], this._renderMsgs(ch).bind(this));
 			}.bind(this));
 		}
 
 		p._renderMsgs = _.curry(function(channel, msg) {
-			this.$msgEl.append('<div class="msg-item"><span><small>topic:&nbsp;</small>' + channel + '</span><span><small>message:&nbsp;</small>' + msg + '</span></div>')
+			this.$msgEl.append('<div class="msg-item"><span><span>topic:&nbsp;</span>' + channel + '</span><span><span>message:&nbsp;</span>' + msg + '</span></div>')
 		});
 
 		return p;

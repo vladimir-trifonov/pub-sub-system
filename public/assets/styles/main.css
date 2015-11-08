@@ -294,6 +294,7 @@ h2 {
   margin-left: 20%;
   background-color: rgba(0, 0, 0, 0.1);
   position: relative;
+  padding-bottom: 20px;
 }
 
 @media (max-width: 992px) {
@@ -306,7 +307,7 @@ h2 {
   }
 }
 
-#pub-client .wrap {
+.pubsub-client .wrap {
   width: 90%;
   margin: 0 auto;
   text-align: left;
@@ -314,21 +315,21 @@ h2 {
   margin-bottom: 10px;
 }
 
-#pub-client .controls {
+.pubsub-client .controls {
   text-align: right;
 }
 
-#pub-client input {
+.pubsub-client input {
   width: 70%;
   color: #fff;
   padding: 10px;
 }
 
-#pub-client input.half-width {
+.pubsub-client input.half-width {
   width: 35%;
 }
 
-#pub-client a {
+.pubsub-client a {
   width: 26%;
   display: inline-block;
   color: #000;
@@ -337,7 +338,7 @@ h2 {
   color: #fff;
 }
 
-#pub-client a:hover {
+.pubsub-client a:hover {
   color: #000;
   text-shadow: none;
   background-color: #fff;
@@ -357,28 +358,33 @@ input:focus {
   width: 80%;
   color: #fff;
   color: #fff;
-  margin: 0 auto;
   position: relative;
   font-size: 14px;
-  margin-bottom: 5px;
+  margin: 0 auto;
   clear: both;
+  text-align: center;
 }
 
 .msg-item > span {
   display: inline-block;
-  border: 1px solid #143118;
-  width: 48%;
+  border-bottom: 1px solid #fff;
+  width: 42%;
+  margin: 20px;
+  font-size: 20px;
   padding: 0 10px;
-  margin: 2px;
+  float: right;
 }
 
-.msg-item small {
+.msg-item > span > span {
   color: #fff;
-  font-size: 9px;
+  font-size: 12px;
+  text-align: right;
+  color: #C2EDD0;
   font-style: italic;
 }
 
 .msg-item > span:first-child {
+  text-align: left;
   float: left;
 }
 
@@ -400,11 +406,40 @@ input:focus {
   color: rgba(255, 255, 255, 0.7);
 }
 
-textarea:focus,
 input:focus,
 input[type]:focus,
 .uneditable-input:focus {
   border-color: rgba(0, 0, 0, 0.8);
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(0, 0, 0, 0.6);
   outline: 0 none;
+}
+
+textarea:focus {
+  border-color: rgba(0, 0, 0, 0.8);
+  box-shadow: none;
+  outline: 0 none;
+}
+
+input[name='to-publish'],
+input[name='message'] {
+  text-align: center;
+}
+
+.messages {
+  overflow: hidden;
+}
+
+#chat .chat-messages {
+  min-width: 97%;
+  max-width: 97%;
+  margin-top: 7px;
+  background: rgba(0, 0, 0, 0.2);
+  min-height: 300px;
+  border: none;
+  color: #fff;
+  padding: 5px 20px 10px 20px;
+}
+
+.nmb { 
+  margin-bottom: 0;
 }

@@ -2,7 +2,7 @@
 var ns = ns || {};
 
 (function(app) {
-	var channels = [];
+	var chatChannel = 'general';
 
-	app.channels = channels;
+	app.chatChannel = chatChannel;
 })(ns);

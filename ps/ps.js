@@ -162,8 +162,8 @@ function onNewSubscr(id, channels) {
 
 // Prepare data received from client and emit
 function onNewNotifications(data) {
-	_.each(Object.keys(data), function(ch) {
-		_.each(data[ch], emitData(ch).bind(this));
+	_.map(Object.keys(data), function(ch) {
+		_.map(data[ch], emitData(ch).bind(this));
 	}.bind(this));
 }
 
@@ -198,7 +198,7 @@ function getChSubs(channel) {
 }
 
 var notifySubs = _.curry(function(channel, msgs, subscrs) {
-	_.each(subscrs, function(subscr) {
+	_.map(subscrs, function(subscr) {
 		var data = {};
 		data[channel] = msgs;
 

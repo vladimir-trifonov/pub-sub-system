@@ -18,7 +18,7 @@ var ns = ns || {};
 		p.constructor = Messages;
 
 		p.connect = function() {
-			this.socket = new WebSocket(this.connectionStr);
+			this.socket = new WebSocket(this.connectionStr, 'echo-protocol');
 			this._initEventHandlers();
 		};
 

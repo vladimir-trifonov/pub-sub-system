@@ -27,14 +27,14 @@ PsDb.prototype.saveMsg = function(channel, msg) {
 
 // Subscribe client for channels' updates
 PsDb.prototype.chsSub = function(id, channels) {
-	_.each(channels, chSub(id).bind(this));
+	_.map(channels, chSub(id).bind(this));
 	this.kvDb.rpush([id + '-usr'].concat(channels));
 }
 
 // Unubscribe client for channels' updates
 PsDb.prototype.chsUnsub = function(id) {
 	this.kvDb.lrange(id + '-usr', 0, -1, function(err, channels) {
-		_.each(channels, chUnsub(id).bind(this));
+		_.map(channels, chUnsub(id).bind(this));
 		this.kvDb.del(id + '-usr');
 	}.bind(this));
 }

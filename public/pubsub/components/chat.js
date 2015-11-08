@@ -17,27 +17,29 @@ var ns = ns || {};
 			this.$el.on('click.' + this.ns, '#to-publish', this._onPublish.bind(this));
 		};
 
-		p._subscrTo = function(channels) {
+		p._subscrTo = function(chatChannel) {
 			this._send.call(this.chat, {
 				type: 'subscribe',
-				channels: channels
+				channels: [chatChannel]
 			});
 		}
 
 		p._onPublish = function(e) {
 			e.preventDefault();
 
-			var $toChEl = this.$el.find('input[name=to-channel]');
-			var $toPublishEl = this.$el.find('input[name=to-publish]');
+			var $messageEl = this.$el.find('input[name=message]');
+			var $nickEl = this.$el.find('input[name=nickname]');
 
 			this._send.call(this.chat, {
 				type: 'publish',
-				channel: $toChEl.val(),
-				msg: $toPublishEl.val()
+				channel: app.chatChannel,
+				msg: {
+					nickname: $nickEl.val(),
+					text: $messageEl.val()
+				}
 			});
 
-			$toChEl.val('')
-			$toPublishEl.val('')
+			$messageEl.val('');
 		}
 
 		p._removeEventHandlers = function() {
@@ -46,7 +48,7 @@ var ns = ns || {};
 
 		p._afterInit = function() {
 			this.$el = $(this.parentSel).find(this.sel);
-			this.$msgEl = this.$el.find('.messages');
+			this.$msgEl = this.$el.find('.chat-messages');
 
 			this.chat = new app.Messages(this.config.chatConnStr, true);
 
@@ -54,7 +56,7 @@ var ns = ns || {};
 		};
 
 		p._initWsEventHandlers = function() {
-			this.chat.addEventListener('connect', this._onWsConnected.call(this, this.chat, app.channels));
+			this.chat.addEventListener('connect', this._onWsConnected.call(this, this.chat, app.chatChannel));
 			this.chat.addEventListener('disconnect', this._onWsDisconnected.call(this, this.chat));
 		};
 
@@ -93,14 +95,18 @@ var ns = ns || {};
 		}
 
 		p._onNewNotifications = function(data) {
-			_.each(Object.keys(data.notifications), function(ch) {
-				_.each(data.notifications[ch], this._renderMsgs(ch).bind(this));
+			_.map(Object.keys(data.notifications), function(ch) {
+				_.map(data.notifications[ch], this._renderMsgs(ch).bind(this));
 			}.bind(this));
 		}
 
 		p._renderMsgs = _.curry(function(channel, msg) {
-			this.$msgEl.append('<div class="msg-item"><span><small>topic:&nbsp;</small>' + channel + '</span><span><small>message:&nbsp;</small>' + msg + '</span></div>')
+			if(msg !== null) {
+				this.$msgEl.text(app.utils.replaceNewline(this.$msgEl.text() + '\n' + (msg.nickname || 'Anonimous') + ': ' + (msg.text || '')));
+				$('.chat-messages').scrollTop($('.chat-messages')[0].scrollHeight);
+			}
 		});
+
 
 		return p;
 	}());
