@@ -1,3 +1,6 @@
+ /*** 																										*
+ *** Menu component																				*
+ ***																											*/
 /* global $, Handlebars, EventDispatcher */
 'use strict';
 var ns = ns || {};
@@ -17,6 +20,7 @@ var ns = ns || {};
 		var p = Object.create({});
 		p.constructor = Menu;
 
+		// Compiles the dom element
 		p.compile = function() {
 			$.get('templates/menu.hbs').then(function(src) {
 				this.tpl = Handlebars.compile(src)();
@@ -26,10 +30,12 @@ var ns = ns || {};
 			}.bind(this));
 		};
 
+		// Renders the component
 		p._render = function() {
 			$(this.parentSel).append(this.tpl);
 		};
 
+		// Initialize component's events handlers
 		p._initEventHandlers = function() {
 			var _self = this;
 			$(this.parentSel).find(this.sel).on('click', 'a', function(e) {

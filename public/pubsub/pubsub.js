@@ -1,3 +1,6 @@
+ /*** 																										*
+ *** Main component																				*
+ ***																											*/
 /* global $, Handlebars */
 'use strict';
 var ns = ns || {};
@@ -16,6 +19,7 @@ var ns = ns || {};
 		var p = Object.create(null);
 		p.constructor = Pubsub;
 
+		// Compiles the dom element
 		p._compile = function() {
 			$.get('templates/pubsub.hbs').then(function(src) {
 				this.tpl = Handlebars.compile(src)();
@@ -26,14 +30,17 @@ var ns = ns || {};
 			}.bind(this));
 		};
 
+		// Renders the component
 		p._render = function() {
 			$(this.parentSel).append(this.tpl);
 		};
 
+		// Renders the main menu component
 		p._renderMenu = function() {
 			this.menu = new app.Menu('#left-sidebar');
 		};
 
+		// Initialize component's events handlers
 		p._initEventHandlers = function() {
 			this.menu.addEventListener('pubClient', function() {
 				if(this.mainContent) {

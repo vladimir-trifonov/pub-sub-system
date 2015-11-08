@@ -44,18 +44,33 @@ node ps-client 3001 money cars girls
 
 Uses MongoDB and Redis. Stores the messages to mongo and stores clients' subscriptions to Redis.
 
-## Usage
+##How to start using the app
+####Install server-side resources:
 
-### Server
+````
+npm install
+```
 
-### Client
+####Install web client's dependencies:
 
-Console:
+````
+bower install
+```
 
-Web:
+####Start the webclient-server
 
-### Publisher
+```
+node app
+```
 
-Console:
+####Start the websocket-server
 
-Web:
+```
+node ps-broker 3001
+```
+
+####Open the app in browser
+
+```
+url: http://localhost:3000
+```

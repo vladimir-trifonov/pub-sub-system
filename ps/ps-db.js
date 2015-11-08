@@ -95,7 +95,7 @@ PsDb.prototype.getLastMsgs = function(channels) {
  ** Ps-ws used methods
  **/
 
-// Transfor mongoDb data to the following format:
+// Transform mongoDb data to the following format:
 // {<channel_name>: [messages], <channel_name>: [messages], ...}
 var groupAndConcatMsgsByChs = function(data) {
 	return _

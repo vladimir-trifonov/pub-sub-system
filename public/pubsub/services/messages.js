@@ -1,3 +1,6 @@
+ /*** 																										*
+ *** Websocket's messages service													*
+ ***																											*/
 /* global EventDispatcher */
 'use strict';
 var ns = ns || {};
@@ -17,22 +20,26 @@ var ns = ns || {};
 		var p = Object.create({});
 		p.constructor = Messages;
 
+		// Creates websocket's connection and connect to server
 		p.connect = function() {
 			this.socket = new WebSocket(this.connectionStr, 'echo-protocol');
 			this._initEventHandlers();
 		};
 
+		// Closes the websocket's connection
 		p.close = function() {
 			this.socket.close();
 			this.socket = null;
 		};
 
+		// Send a message
 		p.send = function(data) {
 			this._waitForConnection(function() {
 				this.socket.send(JSON.stringify(data));
 			}.bind(this), 1000);
 		};
 
+		// Wait until the connection is ready and send the message
 		p._waitForConnection = function(callback, interval) {
 			if(!this.socket) {
 				return;
@@ -47,6 +54,7 @@ var ns = ns || {};
 			}
 		};
 
+		// Initialize websocket's events handlers
 		p._initEventHandlers = function() {
 			this.socket.onopen = function() {
 				this.dispatchEvent({
@@ -60,6 +68,7 @@ var ns = ns || {};
 				});
 			}.bind(this);
 
+			// If the client should listens for incomming messages
 			if (this.canListen) {
 				this.socket.onmessage = function(e) {
 					var data = {};
